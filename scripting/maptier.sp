@@ -4,16 +4,15 @@
 #include <dbi>
 #include <morecolors>
 
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max) {
-    MarkNativeAsOptional("GetUserMessageType");
-    return APLRes_Success;
-} 
+// Prepare for database connection
+Database g_db;
+char g_dbError[255];
 
-Database db;
-new String:g_mapName[128];
-char db_error[255];
+// Additional variables
+new String:g_currentMap[128];
 int g_mapTier;
 
+// Plugin info
 public Plugin myinfo =
 {
 	name = "Map Tier",
@@ -23,39 +22,84 @@ public Plugin myinfo =
 	url = "https://noil.lt/"
 };
 
+// Needed for morecolors.inc
+public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max) {
+    MarkNativeAsOptional("GetUserMessageType");
+    return APLRes_Success;
+} 
+
 public void OnPluginStart()
 {
+  // Init translations file
   LoadTranslations("maptier.phrases.txt");
+
+  // Register !tier/sm_tier command
   RegConsoleCmd("sm_tier", Command_Tier);
-  db = SQL_Connect("influx-mysql", true, db_error, sizeof(db_error));
+
+  // Connect to database reusing previous conenection (if there was one)
+  g_db = SQL_Connect("influx-mysql", true, g_dbError, sizeof(g_dbError));
 }
 
-public int getMapTier(Database g_db, char[] mapname)
+public int GetMapTier(Database i_db, char[] i_mapname)
 {
-  DBResultSet rQuery;
+  DBResultSet queryResult;
+  char mapTierQuery[100];
   int tempTier;
-  char query[100];
-  Format(query, sizeof(query), "SELECT tier FROM maps WHERE mapname = '%s'", mapname);
-  if ((rQuery = SQL_Query(g_db, query)) == null)
-  {
-    return 0;
-  }
+
+  // Prepare MySQL Query and run it storing the result to queryResult
+  Format(mapTierQuery, sizeof(mapTierQuery), "SELECT tier FROM maps WHERE mapname = '%s'", i_mapname);
+  if ((queryResult = SQL_Query(i_db, mapTierQuery)) == null) { return 0; }
   
-  while (SQL_FetchRow(rQuery))
-  {
-    tempTier = SQL_FetchInt(rQuery, 0);
-  }
+  // Loop through the results and store the last one into tempTier which is then returned
+  while (SQL_FetchRow(queryResult)) { tempTier = SQL_FetchInt(queryResult, 0); }
   return tempTier;
 }
 
 public void OnMapStart()
 {
-  GetCurrentMap(g_mapName, sizeof(g_mapName));
-  g_mapTier = getMapTier(db, g_mapName);
+  GetCurrentMap(g_currentMap, sizeof(g_currentMap));
 }
 
 public Action Command_Tier(int client, int args)
 {
-  MC_PrintToChatAll("%t", "CurrentMapTier", g_mapName, g_mapTier);
-  return Plugin_Handled;
+  new String:i_arg[128];
+  // We only take the first argument as we do not query multiple maps
+  GetCmdArg(1, i_arg, sizeof(i_arg));
+
+  // Check if command returned an argument or not
+  if (args >= 1)
+  {
+    // If the command had an argument - get tier of the provided map
+    g_mapTier = GetMapTier(g_db, i_arg);
+  }
+  else
+  {
+    // If the command had no arguments - get the tier of current map
+    // Check if GetCurrentMap actually ran after plugin was loaded
+    if (IsNullString(g_currentMap))
+    {
+      // If it was not ran GetCurrentMap
+      GetCurrentMap(g_currentMap, sizeof(g_currentMap));
+    }
+    // Get map tier
+    g_mapTier = GetMapTier(g_db, g_currentMap);
+  }
+
+  // Check if the tier was returned
+  if (g_mapTier == 0)
+  {
+    // If the query returned a 0 that means the map was not found in the database
+    MC_PrintToChat(client, "%t", "MapTierNotFound", i_arg);
+    return Plugin_Handled; 
+  }
+
+  if (args >= 1)
+  {
+    MC_PrintToChatAll("%t", "CurrentMapTier", i_arg, g_mapTier);
+  }
+  else
+  {
+    MC_PrintToChatAll("%t", "CurrentMapTier", g_currentMap, g_mapTier);
+  }
+  return Plugin_Handled; 
 }

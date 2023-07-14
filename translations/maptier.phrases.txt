@@ -3,6 +3,11 @@
   "CurrentMapTier"
   {
     "#format" "{1:s},{2:i}"
-    "en"    "{white}[{red}Server{white}] {white}{1} {lightgreen}map is tier {white}{2}{lightgreen}!"
+    "en"      "{white}[{red}Server{white}] {white}{1} {lightgreen}map is tier {white}{2}{lightgreen}!"
+  }
+  "MapTierNotFound"
+  {
+    "#format" "{1:s}"
+    "en"      "{white}[{red}Server{white}] {white}{1} {lightgreen}map not found in database!"
   }
 }
