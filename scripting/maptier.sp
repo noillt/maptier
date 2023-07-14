@@ -17,8 +17,8 @@ int g_mapTier;
 public Plugin myinfo =
 {
 	name = "Map Tier",
-	author = "Sidicer",
-	description = "Get current map tier from database",
+	author = "noil.lt",
+	description = "Get current surf map tier",
 	version = "0.0.1",
 	url = "https://noil.lt/"
 };
@@ -56,8 +56,6 @@ public void OnMapStart()
 
 public Action Command_Tier(int client, int args)
 {
-  //PrintToChatAll("Current map is %s which is a Tier %i map!", g_mapName, g_mapTier);
   MC_PrintToChatAll("%t", "CurrentMapTier", g_mapName, g_mapTier);
-
   return Plugin_Handled;
 }
