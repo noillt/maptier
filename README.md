@@ -8,17 +8,20 @@
 
 ## Requirements ##
 - Sourcemod and Metamod
-- [morecolors.inc](https://github.com/noillt/SourceMod-IncludeLibrary/raw/master/include/multicolors/morecolors.inc)
+- MySQL Database connected to the server (`sourcemod/configs/databases.cfg`)
+- [morecolors.inc](https://github.com/noillt/SourceMod-IncludeLibrary/raw/master/include/multicolors/morecolors.inc) (For compiling only)
 
-## Installation ##
+## Preparing database
+1. Create a database or choose the one you're already using
+2. `mysql -u username -p database < maplist.sql`
+
+## Plugin installation ##
 1. Grab the latest release from the release page and unzip it in your sourcemod folder.
 2. Restart the server or type `sm plugins load maptier` in the console to load the plugin.
 3. The config file will be automatically generated in cfg/sourcemod/
 
 ## Configuration ##
 - You can modify the phrases in addons/sourcemod/translations/maptier.phrases.txt.
-- Once the plugin has been loaded, you can modify the cvars in cfg/sourcemod/maptier.cfg.
-
 
 ## Usage ##
 `!tier` in chat or `sm_tier` in console
