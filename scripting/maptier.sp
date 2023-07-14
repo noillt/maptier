@@ -6,6 +6,7 @@
 
 // Prepare for database connection
 Database g_db;
+ConVar g_dbName;
 char g_dbError[255];
 
 // Additional variables
@@ -18,7 +19,7 @@ public Plugin myinfo =
 	name = "Map Tier",
 	author = "noil.lt",
 	description = "Get current surf map tier",
-	version = "0.0.2",
+	version = "0.0.3",
 	url = "https://noil.lt/"
 };
 
@@ -30,14 +31,22 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max) 
 
 public void OnPluginStart()
 {
+  // Generate require ConVars for plugin
+  g_dbName = CreateConVar("maptier_database", "default", "In which database to look for 'maps' table");
+
+  // Generate config file if it doesn't exist
+  AutoExecConfig(true);
+
   // Init translations file
   LoadTranslations("maptier.phrases.txt");
 
   // Register !tier/sm_tier command
   RegConsoleCmd("sm_tier", Command_Tier);
 
-  // Connect to database reusing previous conenection (if there was one)
-  g_db = SQL_Connect("influx-mysql", true, g_dbError, sizeof(g_dbError));
+  // Connect to database reusing previous connection (if there was one)
+  char i_dbName[128];
+  g_dbName.GetString(i_dbName, sizeof(i_dbName));
+  g_db = SQL_Connect(i_dbName, true, g_dbError, sizeof(g_dbError));
 }
 
 public int GetMapTier(Database i_db, char[] i_mapname)

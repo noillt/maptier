@@ -2,7 +2,6 @@
   <h1><code>maptier</code></h1>
   <p>
     <strong>Get surf map tier from database (chat/console)</strong>
-    
   </p>
 </div>
 
@@ -28,6 +27,7 @@
 
 ## Configuration ##
 - You can modify the phrases in `addons/sourcemod/translations/maptier.phrases.txt`
+- Change which database is used in `cfg/sourcemod/plugin.maptier.cfg`
 
 ## Usage ##
 ```
@@ -37,3 +37,8 @@
 # In console
 sm_tier / sm_tier <mapname>
 ```
+
+### Notice
+`maplist.sql` is a direct replica of [OuiSURF/Surf_Maps](https://github.com/OuiSURF/Surf_Maps) maintained spreadsheet of all the maps.  
+We will be updating `maplist.sql` regurarily to match it  
+Current map count: `802`
