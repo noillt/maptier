@@ -1,7 +1,7 @@
 <div align="center">
   <h1><code>maptier</code></h1>
   <p>
-    <strong>Outputs current map`s surf tier in chat</strong>
+    <strong>Get surf map tier from database (chat/console)</strong>
   </p>
 </div>
 
@@ -11,16 +11,28 @@
 - MySQL Database connected to the server (`sourcemod/configs/databases.cfg`)
 - [morecolors.inc](https://github.com/noillt/SourceMod-IncludeLibrary/raw/master/include/multicolors/morecolors.inc) (For compiling only)
 
-## Preparing database
-1. Create a database or choose the one you're already using
-2. `mysql -u username -p database < maplist.sql`
+## Setup
 
-## Plugin installation ##
-1. Grab the latest release from the release page and unzip it in your sourcemod folder.
+1. Grab the latest release from the [release page](https://github.com/noillt/maptier/releases) or  
+`git clone https://github.com/noillt/maptier.git`
+
+### Prepare the database
+2. Create a new database or choose the one you're already using
+3. Import surf map tiers into the database:  
+`mysql -u username -p database < maplist.sql`
+
+### Plugin installation ##
+1. Place `plugins` and `translations` into `addons/sourcemod/`
 2. Restart the server or type `sm plugins load maptier` in the console to load the plugin.
 
 ## Configuration ##
 - You can modify the phrases in `addons/sourcemod/translations/maptier.phrases.txt`
 
 ## Usage ##
-`!tier` in chat or `sm_tier` in console
+```
+# In chat:
+!tier / !tier <mapname>
+
+# In console
+sm_tier / sm_tier <mapname>
+```
