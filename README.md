@@ -2,6 +2,7 @@
   <h1><code>maptier</code></h1>
   <p>
     <strong>Get surf map tier from database (chat/console)</strong>
+    
   </p>
 </div>
 

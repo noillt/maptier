@@ -18,7 +18,7 @@ public Plugin myinfo =
 	name = "Map Tier",
 	author = "noil.lt",
 	description = "Get current surf map tier",
-	version = "0.0.1",
+	version = "0.0.2",
 	url = "https://noil.lt/"
 };
 
