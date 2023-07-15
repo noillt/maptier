@@ -7,7 +7,6 @@
 // Prepare for database connection
 Database g_db;
 ConVar g_dbName;
-char g_dbError[255];
 
 // Additional variables
 new String:g_currentMap[128];
@@ -19,7 +18,7 @@ public Plugin myinfo =
 	name = "Map Tier",
 	author = "noil.lt",
 	description = "Get current surf map tier",
-	version = "0.0.3",
+	version = "0.0.4",
 	url = "https://noil.lt/"
 };
 
@@ -43,25 +42,53 @@ public void OnPluginStart()
   // Register !tier/sm_tier command
   RegConsoleCmd("sm_tier", Command_Tier);
 
-  // Connect to database reusing previous connection (if there was one)
-  char i_dbName[128];
-  g_dbName.GetString(i_dbName, sizeof(i_dbName));
-  g_db = SQL_Connect(i_dbName, true, g_dbError, sizeof(g_dbError));
+  // Connect to the database
+  ConnectToDB();
 }
 
-public int GetMapTier(Database i_db, char[] i_mapname)
+void ConnectToDB()
 {
-  DBResultSet queryResult;
-  char mapTierQuery[100];
-  int tempTier;
+  char dbName[128];
+  g_dbName.GetString(dbName, sizeof(dbName));
+  Database.Connect(DB_OnConnect, dbName);
+}
 
+void DB_OnConnect(Database i_db, const char[] error, any data)
+{
+  if (i_db == null || error[0])
+  {
+    LogError("[maptier] Connection to the database failed. Error: %s", error);
+  }
+
+  g_db = i_db;
+}
+
+void GetMapTier(Database i_db, char[] i_mapname)
+{
+
+  char mapTierQuery[100];
   // Prepare MySQL Query and run it storing the result to queryResult
-  Format(mapTierQuery, sizeof(mapTierQuery), "SELECT tier FROM maps WHERE mapname = '%s'", i_mapname);
-  if ((queryResult = SQL_Query(i_db, mapTierQuery)) == null) { return 0; }
-  
-  // Loop through the results and store the last one into tempTier which is then returned
-  while (SQL_FetchRow(queryResult)) { tempTier = SQL_FetchInt(queryResult, 0); }
-  return tempTier;
+  FormatEx(mapTierQuery, sizeof(mapTierQuery), "SELECT tier FROM maps WHERE mapname = '%s'", i_mapname);
+  i_db.Query(c_GetMapTier, mapTierQuery);
+}
+
+public void c_GetMapTier(Database i_db, DBResultSet i_results, const char[] error, any data)
+{
+  if (i_db == null || i_results == null || error[0] != '\0')
+  {
+    LogError("[maptier] Query failed! %s", error);
+  }
+
+  if (i_results.RowCount == 0)
+  {
+    g_mapTier = 0;
+  }
+  else
+  {
+    char buffer[128];
+    i_results.FetchString(0, buffer, sizeof(buffer));
+    PrintToServer(buffer);
+  }
 }
 
 public void OnMapStart()
@@ -79,7 +106,7 @@ public Action Command_Tier(int client, int args)
   if (args >= 1)
   {
     // If the command had an argument - get tier of the provided map
-    g_mapTier = GetMapTier(g_db, i_arg);
+    GetMapTier(g_db, i_arg);
   }
   else
   {
@@ -91,7 +118,7 @@ public Action Command_Tier(int client, int args)
       GetCurrentMap(g_currentMap, sizeof(g_currentMap));
     }
     // Get map tier
-    g_mapTier = GetMapTier(g_db, g_currentMap);
+    GetMapTier(g_db, g_currentMap);
   }
 
   // Check if the tier was returned
