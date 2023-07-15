@@ -34,7 +34,7 @@
     "pass" ""
 }
 ```
-2. Restart the server or type `sm plugins load maptier` in the console to load the plugin.
+3. Restart the server or type `sm plugins load maptier` in the console to load the plugin.
 
 ## Configuration ##
 - You can modify the phrases in `addons/sourcemod/translations/maptier.phrases.txt`
