@@ -9,7 +9,7 @@ Database g_db;
 ConVar g_dbName;
 
 // Additional variables
-new String:g_currentMap[128];
+char g_currentMap[128];
 int g_mapTier;
 
 // Plugin info
@@ -23,7 +23,7 @@ public Plugin myinfo =
 };
 
 // Needed for morecolors.inc
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max) {
+public APLRes AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max) {
     MarkNativeAsOptional("GetUserMessageType");
     return APLRes_Success;
 } 
@@ -70,24 +70,35 @@ void GetMapTier(Database i_db, char[] i_mapname)
   // Prepare MySQL Query and run it storing the result to queryResult
   FormatEx(mapTierQuery, sizeof(mapTierQuery), "SELECT tier FROM maps WHERE mapname = '%s'", i_mapname);
   i_db.Query(c_GetMapTier, mapTierQuery);
+
+  PrintToServer("[maptier-debug] Formatted and ran query for map %s", i_mapname);
 }
 
 public void c_GetMapTier(Database i_db, DBResultSet i_results, const char[] error, any data)
 {
+  PrintToServer("[maptier-debug] Checking if result did not an error");
   if (i_db == null || i_results == null || error[0] != '\0')
   {
     LogError("[maptier] Query failed! %s", error);
   }
 
-  if (i_results.RowCount == 0)
+  PrintToServer("[maptier-debug] Checking if any rows returned");
+  if (!i_results.FetchRow())
   {
     g_mapTier = 0;
   }
   else
   {
     char buffer[128];
-    i_results.FetchString(0, buffer, sizeof(buffer));
-    PrintToServer(buffer);
+    int temp;
+    temp = i_results.FetchInt(0);
+    i_results.FetchString(0, buffer, sizeof(buffer))
+    PrintToServer("[maptier-debug] Got %s as a string return", buffer);
+    PrintToServer("[maptier-debug] Got %i as an int return", temp);
+    PrintToServer("[maptier-debug] Setting g_mapTier to %s", buffer);
+    PrintToServer("[maptier-debug] Setting g_mapTier to %i", temp);
+    g_mapTier = temp;
+    PrintToServer("[maptier-debug] g_mapTier is set to INT %i", temp);
   }
 }
 
@@ -126,6 +137,7 @@ public Action Command_Tier(int client, int args)
   {
     // If the query returned a 0 that means the map was not found in the database
     MC_PrintToChat(client, "%t", "MapTierNotFound", i_arg);
+    PrintToServer("[maptier-debug] Returning MapTierNotFound because g_mapTier is %i", g_mapTier);
     return Plugin_Handled; 
   }
 
