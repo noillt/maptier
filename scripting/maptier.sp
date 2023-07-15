@@ -1,114 +1,118 @@
-// 2023 • Deividas Gedgaudas • github.com/sidicer
+// 2023 • noil.lt • https://github.com/noillt
 
 #include <sourcemod>
 #include <dbi>
 #include <morecolors>
 
+#pragma newdecls required
+
 // Prepare for database connection
 Database g_db;
 ConVar g_dbName;
-char g_dbError[255];
 
 // Additional variables
-new String:g_currentMap[128];
+char g_currentMap[128];
 int g_mapTier;
 
 // Plugin info
-public Plugin myinfo =
-{
-	name = "Map Tier",
-	author = "noil.lt",
-	description = "Get current surf map tier",
-	version = "0.0.3",
-	url = "https://noil.lt/"
+public Plugin myinfo = {
+    name = "Map Tier",
+    author = "noil.lt",
+    description = "Get current surf map tier",
+    version = "0.0.4",
+    url = "https://noil.lt/"
 };
 
 // Needed for morecolors.inc
-public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max) {
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
     MarkNativeAsOptional("GetUserMessageType");
     return APLRes_Success;
 } 
 
-public void OnPluginStart()
-{
-  // Generate require ConVars for plugin
-  g_dbName = CreateConVar("maptier_database", "default", "In which database to look for 'maps' table");
+public void OnPluginStart() {
+    g_dbName = CreateConVar("maptier_database", "default", "In which database to look for 'maps' table");
+    AutoExecConfig(true);
 
-  // Generate config file if it doesn't exist
-  AutoExecConfig(true);
+    RegConsoleCmd("sm_tier", Command_Tier);
+    LoadTranslations("maptier.phrases.txt");
 
-  // Init translations file
-  LoadTranslations("maptier.phrases.txt");
-
-  // Register !tier/sm_tier command
-  RegConsoleCmd("sm_tier", Command_Tier);
-
-  // Connect to database reusing previous connection (if there was one)
-  char i_dbName[128];
-  g_dbName.GetString(i_dbName, sizeof(i_dbName));
-  g_db = SQL_Connect(i_dbName, true, g_dbError, sizeof(g_dbError));
+    ConnectToDB();
 }
 
-public int GetMapTier(Database i_db, char[] i_mapname)
-{
-  DBResultSet queryResult;
-  char mapTierQuery[100];
-  int tempTier;
-
-  // Prepare MySQL Query and run it storing the result to queryResult
-  Format(mapTierQuery, sizeof(mapTierQuery), "SELECT tier FROM maps WHERE mapname = '%s'", i_mapname);
-  if ((queryResult = SQL_Query(i_db, mapTierQuery)) == null) { return 0; }
-  
-  // Loop through the results and store the last one into tempTier which is then returned
-  while (SQL_FetchRow(queryResult)) { tempTier = SQL_FetchInt(queryResult, 0); }
-  return tempTier;
+void ConnectToDB() {
+    char dbName[128];
+    g_dbName.GetString(dbName, sizeof(dbName));
+    Database.Connect(DB_OnConnect, dbName);
 }
 
-public void OnMapStart()
-{
-  GetCurrentMap(g_currentMap, sizeof(g_currentMap));
-}
-
-public Action Command_Tier(int client, int args)
-{
-  new String:i_arg[128];
-  // We only take the first argument as we do not query multiple maps
-  GetCmdArg(1, i_arg, sizeof(i_arg));
-
-  // Check if command returned an argument or not
-  if (args >= 1)
-  {
-    // If the command had an argument - get tier of the provided map
-    g_mapTier = GetMapTier(g_db, i_arg);
-  }
-  else
-  {
-    // If the command had no arguments - get the tier of current map
-    // Check if GetCurrentMap actually ran after plugin was loaded
-    if (IsNullString(g_currentMap))
-    {
-      // If it was not ran GetCurrentMap
-      GetCurrentMap(g_currentMap, sizeof(g_currentMap));
+void DB_OnConnect(Database i_db, const char[] error, any data) {
+    if (i_db == null || error[0]){
+        LogError("[maptier] Connection to the database failed. Error: %s", error);
     }
-    // Get map tier
-    g_mapTier = GetMapTier(g_db, g_currentMap);
-  }
+    g_db = i_db;
+}
 
-  // Check if the tier was returned
-  if (g_mapTier == 0)
-  {
-    // If the query returned a 0 that means the map was not found in the database
-    MC_PrintToChat(client, "%t", "MapTierNotFound", i_arg);
+void GetMapTier(Database i_db, int client, char[] i_mapname) {
+    DataPack i_data = new DataPack();
+    i_data.WriteCell(GetClientUserId(client));
+    i_data.WriteString(i_mapname);
+
+    char mapTierQuery[100];
+    FormatEx(mapTierQuery, sizeof(mapTierQuery), "SELECT tier FROM maps WHERE mapname = '%s'", i_mapname);
+    // Run the query
+    i_db.Query(c_GetMapTier, mapTierQuery, i_data);
+}
+
+public void c_GetMapTier(Database i_db, DBResultSet i_results, const char[] error, DataPack i_data) {
+    if (i_db == null || i_results == null || error[0] != '\0') {
+        LogError("[maptier] Query failed! %s", error);
+    }
+
+    if (!i_results.FetchRow()) {
+        g_mapTier = 0;
+    } else {
+        g_mapTier = i_results.FetchInt(0);
+    }
+
+    i_data.Reset();
+    int client = GetClientOfUserId(i_data.ReadCell());
+    if (!client) {
+        delete i_data;
+        return;
+    }
+
+    char i_mapname[128];
+    i_data.ReadString(i_mapname, sizeof(i_mapname));
+
+    if (g_mapTier == 0) {
+        // If the query returned a 0 that means the map was not found in the database
+        MC_PrintToChat(client, "%t", "MapTierNotFound", i_mapname);
+        delete i_data;
+        return;
+    }
+
+    MC_PrintToChatAll("%t", "CurrentMapTier", i_mapname, g_mapTier);
+    delete i_data;
+}
+
+public void OnMapStart() {
+    GetCurrentMap(g_currentMap, sizeof(g_currentMap));
+}
+
+public Action Command_Tier(int client, int args) {
+    char i_arg[128];
+    char mapname[128];
+
+    GetCmdArg(1, i_arg, sizeof(i_arg));
+    if (args >= 1) {
+        mapname = i_arg;
+    } else {
+        if (IsNullString(g_currentMap)) {
+            GetCurrentMap(g_currentMap, sizeof(g_currentMap));
+        }
+        mapname = g_currentMap;
+    }
+
+    GetMapTier(g_db, client, mapname)
     return Plugin_Handled; 
-  }
-
-  if (args >= 1)
-  {
-    MC_PrintToChatAll("%t", "CurrentMapTier", i_arg, g_mapTier);
-  }
-  else
-  {
-    MC_PrintToChatAll("%t", "CurrentMapTier", g_currentMap, g_mapTier);
-  }
-  return Plugin_Handled; 
 }
