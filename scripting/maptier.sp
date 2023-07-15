@@ -102,6 +102,24 @@ public void c_GetMapTier(Database i_db, DBResultSet i_results, const char[] erro
   }
 }
 
+public Action Check_gMapTier(Handle timer, int client, int args, char[] i_arg) {
+  if (g_mapTier == 0)
+  {
+    // If the query returned a 0 that means the map was not found in the database
+    MC_PrintToChat(client, "%t", "MapTierNotFound", i_arg);
+    PrintToServer("[maptier-debug] Returning MapTierNotFound because g_mapTier is %i", g_mapTier);
+  }
+
+  if (args >= 1)
+  {
+    MC_PrintToChatAll("%t", "CurrentMapTier", i_arg, g_mapTier);
+  }
+  else
+  {
+    MC_PrintToChatAll("%t", "CurrentMapTier", g_currentMap, g_mapTier);
+  }
+}
+
 public void OnMapStart()
 {
   GetCurrentMap(g_currentMap, sizeof(g_currentMap));
@@ -109,7 +127,7 @@ public void OnMapStart()
 
 public Action Command_Tier(int client, int args)
 {
-  new String:i_arg[128];
+  char i_arg[128];
   // We only take the first argument as we do not query multiple maps
   GetCmdArg(1, i_arg, sizeof(i_arg));
 
@@ -133,21 +151,6 @@ public Action Command_Tier(int client, int args)
   }
 
   // Check if the tier was returned
-  if (g_mapTier == 0)
-  {
-    // If the query returned a 0 that means the map was not found in the database
-    MC_PrintToChat(client, "%t", "MapTierNotFound", i_arg);
-    PrintToServer("[maptier-debug] Returning MapTierNotFound because g_mapTier is %i", g_mapTier);
-    return Plugin_Handled; 
-  }
-
-  if (args >= 1)
-  {
-    MC_PrintToChatAll("%t", "CurrentMapTier", i_arg, g_mapTier);
-  }
-  else
-  {
-    MC_PrintToChatAll("%t", "CurrentMapTier", g_currentMap, g_mapTier);
-  }
+  CreateTimer(1.0, Check_gMapTier, (client, args, i_arg));
   return Plugin_Handled; 
 }
