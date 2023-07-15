@@ -1,14 +1,13 @@
 // 2023 • noil.lt • https://github.com/noillt
 
 #include <sourcemod>
-#include <dbi>
 #include <morecolors>
 
 #pragma newdecls required
+#define DB_NAME "maptier-db"
 
 // Prepare for database connection
 Database g_db;
-ConVar g_dbName;
 
 // Additional variables
 char g_currentMap[128];
@@ -19,7 +18,7 @@ public Plugin myinfo = {
     name = "Map Tier",
     author = "noil.lt",
     description = "Get current surf map tier",
-    version = "0.0.4",
+    version = "0.0.5",
     url = "https://noil.lt/"
 };
 
@@ -30,7 +29,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 } 
 
 public void OnPluginStart() {
-    g_dbName = CreateConVar("maptier_database", "default", "In which database to look for 'maps' table");
     AutoExecConfig(true);
 
     RegConsoleCmd("sm_tier", Command_Tier);
@@ -40,14 +38,17 @@ public void OnPluginStart() {
 }
 
 void ConnectToDB() {
-    char dbName[128];
-    g_dbName.GetString(dbName, sizeof(dbName));
-    Database.Connect(DB_OnConnect, dbName);
+    if (!SQL_CheckConfig(DB_NAME)) {
+        LogError("[maptier] Database config for 'maptier' not found in sourcemod/configs/databases.cfg");
+        return;
+    }
+    Database.Connect(DB_OnConnect, DB_NAME);
 }
 
 void DB_OnConnect(Database i_db, const char[] error, any data) {
     if (i_db == null || error[0]){
         LogError("[maptier] Connection to the database failed. Error: %s", error);
+        return;
     }
     g_db = i_db;
 }
