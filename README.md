@@ -23,11 +23,22 @@
 
 ### Plugin installation ##
 1. Place `plugins` and `translations` into `addons/sourcemod/`
+2. Set `maptier-db` in `addons/sourcemod/configs/databases.cfg`  
+```
+"maptier-db"
+{
+    "driver" "mysql"
+    "host" "127.0.0.1"
+    "database" ""
+    "user" ""
+    "pass" ""
+}
+```
 2. Restart the server or type `sm plugins load maptier` in the console to load the plugin.
 
 ## Configuration ##
 - You can modify the phrases in `addons/sourcemod/translations/maptier.phrases.txt`
-- Change which database is used in `cfg/sourcemod/plugin.maptier.cfg`
+- Change which database is used in `addons/sourcemod/configs/databases.cfg` (`maptier-db`)
 
 ## Usage ##
 ```
