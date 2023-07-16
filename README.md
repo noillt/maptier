@@ -53,3 +53,19 @@ sm_tier / sm_tier <mapname>
 `maplist.sql` is a direct replica of [OuiSURF/Surf_Maps](https://github.com/OuiSURF/Surf_Maps) maintained spreadsheet of all the maps.  
 We will be updating `maplist.sql` regurarily to match it  
 Current map count: `802`
+
+# Latest changes
+
+## [0.0.6] - 2023-07-16
+
+### Added
+
+- `maplist.sql`
+    - surf_seaside
+
+### Changed
+
+- `maplist.sql`
+    - surf_assail `tier 4 -> 5`
+    - surf_intra `tier 4 -> 5`
+    - surf_undergrowth `tier 2 -> 3`
