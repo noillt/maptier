@@ -65,6 +65,7 @@ Current map count: `802`
 
 ### Changed
 
+- `maplist.sql` - `DROP TABLE IF EXISTS` for easier update
 - `maplist.sql`
     - surf_assail `tier 4 -> 5`
     - surf_intra `tier 4 -> 5`

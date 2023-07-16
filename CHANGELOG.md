@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `maplist.sql` - `DROP TABLE IF EXISTS` for easier update
 - `maplist.sql`
     - surf_seaside
 

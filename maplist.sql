@@ -5,6 +5,7 @@ SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
 SET NAMES utf8mb4;
 
+DROP TABLE IF EXISTS `maps`;
 CREATE TABLE `maps` (
   `mapname` varchar(255) NOT NULL,
   `tier` int(11) DEFAULT NULL,
