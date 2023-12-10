@@ -126,7 +126,7 @@ INSERT INTO `maps` (`mapname`, `tier`, `type`) VALUES
 ('surf_canisius2_fix',3,'Staged'),
 ('surf_cannonball',4,'Linear'),
 ('surf_cartoon',3,'Staged'),
-('surf_castewalls',5,'Staged'),
+('surf_castlewalls',5,'Staged'),
 ('surf_catalyst',4,'Linear'),
 ('surf_catalyst2',4,'Linear'),
 ('surf_cavemissile_fix',2,'Linear'),
