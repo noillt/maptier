@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.7] - 2023-12-10
+
+### Added
+
+- New maps to `maplist.sql`
+    - Current map count: `819`
+
 ## [0.0.6] - 2023-07-16
 
 ### Added
