@@ -709,7 +709,7 @@ INSERT INTO `maps` (`mapname`, `tier`, `type`) VALUES
 ('surf_spaceship_ksf',3,'Linear'),
 ('surf_spectra',6,'Linear'),
 ('surf_spectrum_njv',3,'Staged'),
-('surf_spookly',2,'Linear'),
+('surf_spooky',2,'Linear'),
 ('surf_squirrelsonvacation',2,'Linear'),
 ('surf_stagejuan_ksf',3,'Linear'),
 ('surf_static',3,'Staged'),
